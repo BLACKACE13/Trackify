@@ -1,0 +1,20 @@
+[
+    {
+        "order_id": "TEST-1001",
+        "email": "test@example.com",
+        "items": ["LED Light", "Motor"],
+        "total_price": "15.99"
+    },
+    {
+        "order_id": "TEST-1002",
+        "email": "customer@example.com",
+        "items": ["Speaker", "Battery"],
+        "total_price": "9.99"
+    },
+    {
+        "order_id": "TEST-1003",
+        "email": "shopper@example.com",
+        "items": ["Sunscreen", "Vitamin C Serum"],
+        "total_price": "20.50"
+    }
+]
