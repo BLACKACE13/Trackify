@@ -1,12 +1,24 @@
 import pandas as pd
 import gspread
+import os
+import json
+from dotenv import load_dotenv
 from google.oauth2.service_account import Credentials
+
+# Load environment variables
+load_dotenv()
+
+# Read credentials from .env
+google_creds_json = os.getenv("GOOGLE_SHEETS_CREDENTIALS")
+
+# Convert string back to JSON format
+google_creds = json.loads(google_creds_json)
 
 # Authenticate Google Sheets API
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
 def authenticate_google_sheets():
     
-    creds = Credentials.from_service_account_file("e-commerce-gsheet-944f2f495406.json", scopes=SCOPES)
+    creds = Credentials.from_service_account_file(google_creds, scopes=SCOPES)
     client = gspread.authorize(creds)
     return client
 
