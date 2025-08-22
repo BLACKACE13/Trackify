@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from database import db
-from models import Order
+from models import Order, OrderHistory
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///orders.db"
@@ -31,10 +31,50 @@ def get_orders():
 def update_order(order_id):
     order = Order.query.get_or_404(order_id)
     data = request.get_json()
+
     if "status" in data:
-        order.status = data["status"]
+        old_status = order.status
+        new_status = data["status"]
+
+        # Enforce valid workflow
+        valid_flow = {
+            "Pending": "Processing",
+            "Processing": "Shipped",
+            "Shipped": "Delivered"
+        }
+
+        if new_status not in valid_flow.values() and new_status != "Delivered":
+            return jsonify({"error": "Invalid status"}), 400
+
+        order.status = new_status
+
+        # Log status change
+        history = OrderHistory(
+            order_id=order.id,
+            old_status=old_status,
+            new_status=new_status
+        )
+        db.session.add(history)
+
+        # Mock email (console print)
+        print(f"[EMAIL MOCK] Order {order.id} status changed from {old_status} → {new_status}")
+
     db.session.commit()
     return jsonify(order.to_dict())
+
+@app.route("/orders/<int:order_id>/history", methods=["GET"])
+def get_order_history(order_id):
+    history = OrderHistory.query.filter_by(order_id=order_id).all()
+    return jsonify([
+        {
+            "id": h.id,
+            "order_id": h.order_id,
+            "old_status": h.old_status,
+            "new_status": h.new_status,
+            "timestamp": h.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        }
+        for h in history
+    ])
 
 # Delete Order
 @app.route("/orders/<int:order_id>", methods=["DELETE"])
