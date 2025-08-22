@@ -16,3 +16,4 @@ class Order(db.Model):
             "status": self.status,
             "date": self.date.strftime("%Y-%m-%d %H:%M:%S")
         }
+#test
