@@ -16,3 +16,10 @@ class Order(db.Model):
             "status": self.status,
             "date": self.date.strftime("%Y-%m-%d %H:%M:%S")
         }
+
+class OrderHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey("order.id"), nullable=False)
+    old_status = db.Column(db.String(50))
+    new_status = db.Column(db.String(50))
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
