@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from database import db
 from models import Order, OrderHistory, User
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
@@ -13,6 +13,9 @@ db.init_app(app)
 
 with app.app_context():
     db.create_all()
+@app.route("/")
+def index():
+    return render_template("index.html")
 
 # Create Order
 @app.route("/orders", methods=["POST"])
