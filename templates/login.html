@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block head %}
+<title>Login</title>
+<script>
+async function loginUser() {
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+
+    try {
+        const res = await fetch("/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.token) {
+            // Save token in localStorage
+            localStorage.setItem("jwtToken", data.token);
+
+            alert("Login successful!");
+            window.location.href = "/dashboard"; // Redirect to dashboard
+        } else {
+            alert("Login failed: " + (data.error || "Unknown error"));
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        alert("Something went wrong. Try again.");
+    }
+}
+</script>
+{% endblock %}
+
+{% block body %}
+<div class="row justify-content-center mt-5">
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h3 class="card-title mb-4 text-center">Login</h3>
+        <form method="POST" action="/login">
+          <div class="mb-3">
+            <label for="username" class="form-label">Username</label>
+            <input type="text" class="form-control" id="username" name="username" required>
+          </div>
+          <div class="mb-3">
+            <label for="loginPassword" class="form-label">Password</label>
+            <div class="input-group">
+                <input type="password" class="form-control" id="loginPassword" name="password" required>
+                <button class="btn btn-outline-secondary" type="button"
+                        data-toggle="password" data-target="loginPassword">
+                <i class="bi bi-eye"></i>
+                </button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100">Login</button>
+        </form>
+        {% if error %}
+        <p style="color: red;">{{ error }}</p>
+        {% endif %}
+        <p class="text-center mt-3">
+          Don’t have an account? <a href="/register">Register</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

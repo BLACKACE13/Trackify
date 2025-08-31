@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block head %}
+<title>Register</title>
+{% endblock %}
+
+{% block body %}
+<div class="row justify-content-center mt-5">
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h3 class="card-title mb-4 text-center">Register</h3>
+        <form method="POST" action="/register">
+          <div class="mb-3">
+            <label for="username" class="form-label">Username</label>
+            <input type="text" class="form-control" id="username" name="username" required>
+          </div>
+          <div class="mb-3">
+            <label for="registerPassword" class="form-label">Password</label>
+            <div class="input-group">
+                <input type="password" class="form-control" id="registerPassword" name="password" required>
+                <button class="btn btn-outline-secondary" type="button"
+                        data-toggle="password" data-target="registerPassword">
+                <i class="bi bi-eye"></i>
+                </button>
+            </div>
+            </div>
+          <button type="submit" class="btn btn-success w-100">Register</button>
+        </form>
+        {% if error %}
+        <p style="color: red;">{{ error }}</p>
+        {% endif %}
+        <p class="text-center mt-3">
+          Already have an account? <a href="/login">Login</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

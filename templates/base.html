@@ -3,10 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {% block head %} {% endblock %}
+    
+    <!-- Bootstrap CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    {% block head %}{% endblock %}
 </head>
-<body>
-    {% block body %}
-    {% endblock %}
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">Order Automation</a>
+            <div>
+                <a class="btn btn-outline-light btn-sm" href="/login">Login</a>
+                <a class="btn btn-light btn-sm ms-2" href="/register">Register</a>
+            </div>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        {% block body %}{% endblock %}
+    </div>
+    <script>
+        document.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-toggle="password"]');
+        if (!btn) return;
+        const input = document.getElementById(btn.dataset.target);
+        const icon = btn.querySelector('i');
+        if (!input) return;
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            if (icon) icon.classList.replace('bi-eye', 'bi-eye-slash');
+        } else {
+            input.type = 'password';
+            if (icon) icon.classList.replace('bi-eye-slash', 'bi-eye');
+        }
+        });
+    </script>
+
 </body>
 </html>
