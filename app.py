@@ -149,16 +149,19 @@ def login():
                 token = create_access_token(identity=str(user.id))
                 return jsonify({"token": token}), 200
             # Frontend login → set session + redirect
-            session["user_id"] = user.id
-            session["username"] = user.username
-            flash("Login successful!")
-            return redirect(url_for("dashboard"))
+            else:
+                token = create_access_token(identity=str(user.id))
+                session["user_id"] = user.id
+                session["username"] = user.username
+                flash("Login successful!")
+                # Pass token to template if needed
+                return render_template("dashboard.html", token=token)
+
 
         if request.is_json:
             return jsonify({"error": "Invalid credentials"}), 401
         flash("Invalid username or password")
-        return render_template("login.html", error="Invalid username or password")
-        
+        return render_template("login.html", error="Invalid username or password")            
 
     return render_template("login.html")
 
