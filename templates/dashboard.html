@@ -1,107 +1,206 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-    <!-- Bootstrap CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orders Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 </head>
-<body class="bg-light-dashboard">
+<body class="bg-light">
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand">Welcome, {{ username }}</a>
-            <div>
-                <a class="btn btn-outline-light btn-sm" href="{{ url_for('logout') }}">Logout</a>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+      <a class="navbar-brand">Welcome, {{ username }}</a>
+      <div>
+        <a class="btn btn-outline-light btn-sm" href="{{ url_for('logout') }}">Logout</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <div class="container py-4">
+    <h1 class="mb-4">Orders Dashboard</h1>
+
+    <!-- Action Buttons -->
+    <div class="mb-3">
+      <button class="btn btn-primary btn-sm" onclick="getOrders()">GET Orders</button>
+      <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#createModal">POST Order</button>
+      <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#updateModal">PUT Order</button>
+      <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal">DELETE Order</button>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="table-responsive">
+      <table class="table table-bordered table-striped" id="ordersTable" style="display: none;">
+        <thead class="table-dark">
+          <tr>
+            <th>ID</th>
+            <th>Customer</th>
+            <th>Product</th>
+            <th>Status</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="ordersBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- POST Modal -->
+  <div class="modal fade" id="createModal" tabindex="-1">
+    <div class="modal-dialog">
+      <form class="modal-content" onsubmit="createOrder(event)">
+        <div class="modal-header">
+          <h5 class="modal-title">Create Order</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="text" class="form-control mb-2" id="newCustomer" placeholder="Customer" required>
+          <input type="text" class="form-control mb-2" id="newProduct" placeholder="Product" required>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Create</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- PUT Modal -->
+  <div class="modal fade" id="updateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form class="modal-content" onsubmit="updateOrder(event)">
+        <div class="modal-header">
+            <h5 class="modal-title">Update Order Status</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+            <input type="number" class="form-control mb-3" id="updateId" placeholder="Order ID" required>
+            
+            <!-- Dropdown for status -->
+            <label for="updateStatus" class="form-label">New Status</label>
+            <select class="form-select" id="updateStatus" required>
+            <option value="">-- Select Status --</option>
+            <option value="Processing">Processing</option>
+            <option value="Shipped">Shipped</option>
+            <option value="Delivered">Delivered</option>
+            </select>
+
+            <div class="form-text mt-2">
+            Status flow: <b>Pending → Processing → Shipped → Delivered</b>
             </div>
         </div>
-    </nav>
-
-
-    <div style="padding:2rem;">
-    <h1>Orders Dashboard</h1>
-
-    <div style="margin-bottom:1rem;">
-        <nav>
-            <button onclick="getOrders()">GET Orders</button>
-            <button onclick="createOrder()">POST Order</button>
-            <button onclick="updateOrder()">PUT Order</button>
-            <button onclick="deleteOrder()">DELETE Order</button>
-        </nav>
-        <pre id="output" style="background:#f4f4f4; padding:1rem; border:1px solid #ddd; max-height:300px; overflow:auto;">
-        Click "Get Orders" to see all orders.
-        </pre>
+        <div class="modal-footer">
+            <button type="submit" class="btn btn-warning">Update</button>
+        </div>
+        </form>
     </div>
-    </div>
+  </div>
 
-    <script>
-    // ✅ Save token passed from Flask into localStorage
+
+  <!-- DELETE Modal -->
+  <div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+      <form class="modal-content" onsubmit="deleteOrder(event)">
+        <div class="modal-header">
+          <h5 class="modal-title">Delete Order</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="number" class="form-control mb-2" id="deleteId" placeholder="Order ID" required>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-danger">Delete</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Bootstrap + Custom Script -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
     const jwtToken = "{{ token }}";
-    if (jwtToken) {
-        localStorage.setItem("jwtToken", jwtToken);
-    }
-
-    const output = document.getElementById("output");
-
-    function showResult(data) {
-        output.textContent = JSON.stringify(data, null, 2);
-    }
+    if (jwtToken) localStorage.setItem("jwtToken", jwtToken);
 
     async function getOrders() {
-        const token = localStorage.getItem("jwtToken");
-        const res = await fetch("/orders", {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + token
-            }
+      const token = localStorage.getItem("jwtToken");
+      const res = await fetch("/orders", {
+        headers: { "Authorization": "Bearer " + token }
+      });
+      const data = await res.json();
+
+      const table = document.getElementById("ordersTable");
+      const body = document.getElementById("ordersBody");
+      body.innerHTML = "";
+
+      if (Array.isArray(data)) {
+        data.forEach(order => {
+          body.innerHTML += `
+            <tr>
+              <td>${order.id}</td>
+              <td>${order.customer}</td>
+              <td>${order.product}</td>
+              <td>${order.status}</td>
+              <td>${order.date}</td>
+            </tr>
+          `;
         });
-        const data = await res.json();
-        showResult(data);
+        table.style.display = "table";
+      }
     }
 
-    async function createOrder() {
-        const token = localStorage.getItem("jwtToken");
-        const res = await fetch("/orders", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + token
-            },
-            body: JSON.stringify({ item: "Laptop", quantity: 1 })
-        });
-        const data = await res.json();
-        showResult(data);
+    async function createOrder(e) {
+      e.preventDefault();
+      const token = localStorage.getItem("jwtToken");
+      const customer = document.getElementById("newCustomer").value;
+      const product = document.getElementById("newProduct").value;
+
+      const res = await fetch("/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+        body: JSON.stringify({ customer, product })
+      });
+
+      const data = await res.json();
+      alert(data.message || JSON.stringify(data));
+      getOrders();
     }
 
-    async function updateOrder() {
+    async function updateOrder(e) {
+        e.preventDefault();
         const token = localStorage.getItem("jwtToken");
-        const res = await fetch("/orders/1", {  // example order id = 1
+        const id = document.getElementById("updateId").value;
+        const status = document.getElementById("updateStatus").value;
+
+        const res = await fetch(`/orders/${id}`, {
             method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + token
+            headers: { 
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token 
             },
-            body: JSON.stringify({ quantity: 2 })
+            body: JSON.stringify({ status })
         });
+        
         const data = await res.json();
-        showResult(data);
-    }
+        alert(data.message || JSON.stringify(data));
+        getOrders(); // refresh table
+        }
 
-    async function deleteOrder() {
-        const token = localStorage.getItem("jwtToken");
-        const res = await fetch("/orders/1", {  // example order id = 1
-            method: "DELETE",
-            headers: {
-                "Authorization": "Bearer " + token
-            }
-        });
-        const data = await res.json();
-        showResult(data);
+    async function deleteOrder(e) {
+      e.preventDefault();
+      const token = localStorage.getItem("jwtToken");
+      const id = document.getElementById("deleteId").value;
+
+      const res = await fetch(`/orders/${id}`, {
+        method: "DELETE",
+        headers: { "Authorization": "Bearer " + token }
+      });
+
+      const data = await res.json();
+      alert(data.message || JSON.stringify(data));
+      getOrders();
     }
-</script>
+  </script>
 </body>
 </html>
