@@ -78,6 +78,6 @@ Will be added soon
 
 ## 👯 About Team
 - [Alorika Jain](https://github.com/BLACKACE13) - Backened and API Developer
-- [Sarthak Jain](https://github.com/1905Sarthak) - Frontend Developer
+- [Sarthak Jain](https://github.com/1905Sarthak) - Full Stack Developer
 
 We hope you enjoy using it as much as we enjoyed creating it! <3
