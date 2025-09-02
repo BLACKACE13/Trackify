@@ -8,53 +8,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
-    <script>
-    const token = localStorage.getItem("jwtToken"); // ✅ Retrieve saved token
-
-    async function fetchOrders() {
-        const res = await fetch("/orders", {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + token  // ✅ Attach token
-            }
-        });
-
-        const data = await res.json();
-        document.getElementById("orders").innerText = JSON.stringify(data, null, 2);
-    }
-
-    async function createOrder() {
-        const res = await fetch("/orders", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ item_name: "Sample Item", quantity: 1 })
-        });
-        const data = await res.json();
-        alert("Order created: " + JSON.stringify(data));
-        fetchOrders();
-    }
-
-    async function updateOrder() {
-        const orderId = prompt("Enter Order ID to update:");
-        const res = await fetch(`/orders/${orderId}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ item_name: "Updated Item", quantity: 5 })
-        });
-        const data = await res.json();
-        alert("Order updated: " + JSON.stringify(data));
-        fetchOrders();
-    }
-
-    async function deleteOrder() {
-        const orderId = prompt("Enter Order ID to delete:");
-        const res = await fetch(`/orders/${orderId}`, { method: "DELETE" });
-        const data = await res.json();
-        alert("Order deleted: " + JSON.stringify(data));
-        fetchOrders();
-    }
-</script>
 </head>
 <body class="bg-light-dashboard">
 
@@ -72,16 +25,83 @@
     <h1>Orders Dashboard</h1>
 
     <div style="margin-bottom:1rem;">
-        <button onclick="fetchOrders()">Get Orders</button>
-        <button onclick="createOrder()">Post Order</button>
-        <button onclick="updateOrder()">Put Order</button>
-        <button onclick="deleteOrder()">Delete Order</button>
+        <nav>
+            <button onclick="getOrders()">GET Orders</button>
+            <button onclick="createOrder()">POST Order</button>
+            <button onclick="updateOrder()">PUT Order</button>
+            <button onclick="deleteOrder()">DELETE Order</button>
+        </nav>
+        <pre id="output" style="background:#f4f4f4; padding:1rem; border:1px solid #ddd; max-height:300px; overflow:auto;">
+        Click "Get Orders" to see all orders.
+        </pre>
+    </div>
     </div>
 
-    <pre id="orders" style="background:#f4f4f4; padding:1rem; border:1px solid #ddd; max-height:300px; overflow:auto;">
-        Click "Get Orders" to see all orders.
-    </pre>
-    </div>
-    
+    <script>
+    // ✅ Save token passed from Flask into localStorage
+    const jwtToken = "{{ token }}";
+    if (jwtToken) {
+        localStorage.setItem("jwtToken", jwtToken);
+    }
+
+    const output = document.getElementById("output");
+
+    function showResult(data) {
+        output.textContent = JSON.stringify(data, null, 2);
+    }
+
+    async function getOrders() {
+        const token = localStorage.getItem("jwtToken");
+        const res = await fetch("/orders", {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+            }
+        });
+        const data = await res.json();
+        showResult(data);
+    }
+
+    async function createOrder() {
+        const token = localStorage.getItem("jwtToken");
+        const res = await fetch("/orders", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+            },
+            body: JSON.stringify({ item: "Laptop", quantity: 1 })
+        });
+        const data = await res.json();
+        showResult(data);
+    }
+
+    async function updateOrder() {
+        const token = localStorage.getItem("jwtToken");
+        const res = await fetch("/orders/1", {  // example order id = 1
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+            },
+            body: JSON.stringify({ quantity: 2 })
+        });
+        const data = await res.json();
+        showResult(data);
+    }
+
+    async function deleteOrder() {
+        const token = localStorage.getItem("jwtToken");
+        const res = await fetch("/orders/1", {  // example order id = 1
+            method: "DELETE",
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        });
+        const data = await res.json();
+        showResult(data);
+    }
+</script>
 </body>
 </html>
