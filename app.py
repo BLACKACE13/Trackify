@@ -150,12 +150,11 @@ def login():
                 return jsonify({"token": token}), 200
             # Frontend login → set session + redirect
             else:
-                token = create_access_token(identity=str(user.id))
                 session["user_id"] = user.id
                 session["username"] = user.username
                 flash("Login successful!")
                 # Pass token to template if needed
-                return render_template("dashboard.html", token=token)
+                return redirect(url_for("dashboard"))
 
 
         if request.is_json:
@@ -170,7 +169,9 @@ def dashboard():
     if "user_id" not in session:
         flash("Please log in first")
         return redirect(url_for("login"))
-    return render_template("dashboard.html", username=session["username"])
+    
+    token = create_access_token(identity=str(session["user_id"]))
+    return render_template("dashboard.html", username=session["username"], token=token)
 
 @app.route("/logout")
 def logout():
