@@ -2,35 +2,7 @@
 
 {% block head %}
 <title>Login</title>
-<script>
-async function loginUser() {
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
 
-    try {
-        const res = await fetch("/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, password })
-        });
-
-        const data = await res.json();
-
-        if (res.ok && data.token) {
-            // Save token in localStorage
-            localStorage.setItem("jwtToken", data.token);
-
-            alert("Login successful!");
-            window.location.href = "/dashboard"; // Redirect to dashboard
-        } else {
-            alert("Login failed: " + (data.error || "Unknown error"));
-        }
-    } catch (error) {
-        console.error("Error:", error);
-        alert("Something went wrong. Try again.");
-    }
-}
-</script>
 {% endblock %}
 
 {% block body %}
