@@ -14,7 +14,6 @@
     <title>{% block title %}Trackify{% endblock %}</title>
 
     <style>
-        /* General Styling */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
@@ -36,8 +35,6 @@
             transform: translateY(-8px);
             box-shadow: 0 8px 20px rgba(0,0,0,0.15);
         }
-
-        /* Enhanced Timeline */
         .timeline {
             position: relative;
             margin: 40px auto;
@@ -88,7 +85,6 @@
         .timeline-item.right::before {
             left: -11px;
         }
-
         footer {
             background: #212529;
             color: #bbb;
@@ -97,8 +93,6 @@
             border-radius: 12px 12px 0 0;
             text-align: center;
         }
-
-        /* Fade-in animation */
         .fade-in {
             opacity: 0;
             transform: translateY(30px);
@@ -122,8 +116,15 @@
                 Trackify
             </a>
             <div>
-                <a class="btn btn-outline-light btn-sm" href="/login">Login</a>
-                <a class="btn btn-light btn-sm ms-2" href="/register">Register</a>
+                {% if session.get('username') %}
+                    <span class="navbar-text text-white me-3">
+                        👋 Welcome, <strong>{{ session['username'] }}</strong>
+                    </span>
+                    <a class="btn btn-danger btn-sm" href="/logout">Logout</a>
+                {% else %}
+                    <a class="btn btn-outline-light btn-sm" href="/login">Login</a>
+                    <a class="btn btn-light btn-sm ms-2" href="/register">Register</a>
+                {% endif %}
             </div>
         </div>
     </nav>
@@ -152,7 +153,6 @@
             });
         });
 
-        // Fade-in scroll animation
         const faders = document.querySelectorAll('.fade-in');
         const observer = new IntersectionObserver(entries => {
             entries.forEach(entry => {
