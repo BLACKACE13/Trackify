@@ -1,16 +1,16 @@
 from datetime import datetime
-from zoneinfo import ZoneInfo   # ✅ Use zoneinfo for IST timezone
+from zoneinfo import ZoneInfo   
 from werkzeug.security import generate_password_hash, check_password_hash
 from database import db
 
-IST = ZoneInfo("Asia/Kolkata")  # ✅ IST Timezone
+IST = ZoneInfo("Asia/Kolkata")  
 
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     customer = db.Column(db.String(100), nullable=False)
     product = db.Column(db.String(100), nullable=False)
     status = db.Column(db.String(50), default="Pending")
-    date = db.Column(db.DateTime, default=lambda: datetime.now(IST))  # ✅ IST instead of UTC
+    date = db.Column(db.DateTime, default=lambda: datetime.now(IST))  
 
     def to_dict(self):
         return {

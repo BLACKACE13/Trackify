@@ -55,8 +55,6 @@ def get_orders():
     if status:
         query = query.filter(Order.status == status)
 
-    # NOTE: We treat stored datetimes as IST-naive values. So we parse date-only
-    # inputs as naive datetimes covering the full day in IST.
     def parse_date_ymd(s: str):
         return datetime.strptime(s, "%Y-%m-%d")
 
