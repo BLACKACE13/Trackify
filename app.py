@@ -2,21 +2,27 @@ from flask import Flask, request, jsonify, render_template, redirect, url_for, f
 from database import db
 from models import Order, OrderHistory, User
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///orders.db"
 app.config["SECRET_KEY"] = "Thatsmynewsecret@123"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["JWT_SECRET_KEY"] = "Thatsmysecret@123"  # later .env 
+app.config["JWT_SECRET_KEY"] = "Thatsmysecret@123"  # later .env
 jwt = JWTManager(app)
 
 db.init_app(app)
 
 with app.app_context():
     db.create_all()
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
+
+
+# ----------------- ORDERS -----------------
 
 # Create Order
 @app.route("/orders", methods=["POST"])
@@ -29,13 +35,49 @@ def create_order():
     db.session.commit()
     return jsonify(new_order.to_dict()), 201
 
-# Get All Orders
+
+# Get All Orders (with filters)
 @app.route("/orders", methods=["GET"])
 @jwt_required()
 def get_orders():
     user_id = int(get_jwt_identity())
-    orders = Order.query.all()
+    query = Order.query
+
+    # ---- Filters ----
+    customer = request.args.get("customer", type=str)
+    status = request.args.get("status", type=str)
+    start_date_str = request.args.get("start_date", type=str)  # expected YYYY-MM-DD
+    end_date_str = request.args.get("end_date", type=str)      # expected YYYY-MM-DD
+
+    if customer:
+        query = query.filter(Order.customer.ilike(f"%{customer}%"))
+
+    if status:
+        query = query.filter(Order.status == status)
+
+    def parse_date_ymd(s: str):
+        return datetime.strptime(s, "%Y-%m-%d")
+
+    if start_date_str:
+        try:
+            start_dt = parse_date_ymd(start_date_str)
+            # start of the day
+            query = query.filter(Order.date >= start_dt)
+        except ValueError:
+            pass  # ignore bad input, return unfiltered
+
+    if end_date_str:
+        try:
+            end_dt = parse_date_ymd(end_date_str) + timedelta(days=1) - timedelta(microseconds=1)
+            # end of the day
+            query = query.filter(Order.date <= end_dt)
+        except ValueError:
+            pass  # ignore bad input, return unfiltered
+
+    # Sort newest first
+    orders = query.order_by(Order.date.desc()).all()
     return jsonify([o.to_dict() for o in orders])
+
 
 # Update Order Status
 @app.route("/orders/<int:order_id>", methods=["PUT"])
@@ -75,6 +117,7 @@ def update_order(order_id):
     db.session.commit()
     return jsonify(order.to_dict())
 
+
 @app.route("/orders/<int:order_id>/history", methods=["GET"])
 def get_order_history(order_id):
     history = OrderHistory.query.filter_by(order_id=order_id).all()
@@ -84,10 +127,11 @@ def get_order_history(order_id):
             "order_id": h.order_id,
             "old_status": h.old_status,
             "new_status": h.new_status,
-            "timestamp": h.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+            "timestamp": h.timestamp.strftime("%d-%m-%Y %H:%M:%S")
         }
         for h in history
     ])
+
 
 # Delete Order
 @app.route("/orders/<int:order_id>", methods=["DELETE"])
@@ -98,6 +142,9 @@ def delete_order(order_id):
     db.session.delete(order)
     db.session.commit()
     return jsonify({"message": f"Order {order_id} deleted"})
+
+
+# ----------------- AUTH -----------------
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -129,6 +176,7 @@ def register():
 
     return render_template("register.html")
 
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -156,28 +204,30 @@ def login():
                 # Pass token to template if needed
                 return redirect(url_for("dashboard"))
 
-
         if request.is_json:
             return jsonify({"error": "Invalid credentials"}), 401
         flash("Invalid username or password")
-        return render_template("login.html", error="Invalid username or password")            
+        return render_template("login.html", error="Invalid username or password")
 
     return render_template("login.html")
+
 
 @app.route("/dashboard")
 def dashboard():
     if "user_id" not in session:
         flash("Please log in first")
         return redirect(url_for("login"))
-    
+
     token = create_access_token(identity=str(session["user_id"]))
     return render_template("dashboard.html", username=session["username"], token=token)
+
 
 @app.route("/logout")
 def logout():
     session.clear()
     flash("Logged out successfully")
     return redirect(url_for("index"))
+
 
 if __name__ == "__main__":
     app.run(debug=True)
