@@ -98,9 +98,10 @@
               <input class="form-check-input" type="checkbox" id="analyticsTime" checked>
               <label class="form-check-label" for="analyticsTime">Orders over time</label>
             </div>
+            <!-- Changed checkbox id+label to Top Products (only this change) -->
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="analyticsCustomers" checked>
-              <label class="form-check-label" for="analyticsCustomers">Top customers</label>
+              <input class="form-check-input" type="checkbox" id="analyticsProducts" checked>
+              <label class="form-check-label" for="analyticsProducts">Top products</label>
             </div>
             <div class="form-check">
               <input class="form-check-input" type="checkbox" id="analyticsShowTable">
@@ -144,11 +145,12 @@
         </div>
       </div>
 
-      <div class="col-md-12" id="customerCard" style="display:none;">
+      <!-- REPLACED Top Customers with Top Products -->
+      <div class="col-md-12" id="productCard" style="display:none;">
         <div class="card shadow-sm">
-          <div class="card-header bg-warning">Top Customers</div>
+          <div class="card-header bg-warning">Top Products</div>
           <div class="card-body">
-            <canvas id="customerChart"></canvas>
+            <canvas id="productChart"></canvas>
           </div>
         </div>
       </div>
@@ -448,12 +450,12 @@
   }
 
   // ---------------- Analytics (Chart.js) ----------------
-  let statusChart = null, timeChart = null, customerChart = null;
+  let statusChart = null, timeChart = null, productChart = null;
 
   function destroyCharts() {
     if (statusChart) { statusChart.destroy(); statusChart = null; }
     if (timeChart) { timeChart.destroy(); timeChart = null; }
-    if (customerChart) { customerChart.destroy(); customerChart = null; }
+    if (productChart) { productChart.destroy(); productChart = null; }
   }
 
   function renderStatusChart(orders) {
@@ -513,20 +515,42 @@
     });
   }
 
-  function renderCustomerChart(orders) {
+  // NEW: renderProductChart (replaces previous customer chart)
+  function renderProductChart(orders) {
     const counts = {};
-    orders.forEach(o => counts[o.customer] = (counts[o.customer] || 0) + 1);
-    const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 8);
+    orders.forEach(o => counts[o.product] = (counts[o.product] || 0) + 1);
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 8); // top 8 products
     const labels = sorted.map(s => s[0]);
     const data = sorted.map(s => s[1]);
-    const ctx = document.getElementById("customerChart").getContext("2d");
-    customerChart = new Chart(ctx, {
+
+    // visually pleasing color palette
+    const colors = ["#ff6384","#36a2eb","#ffcd56","#4bc0c0","#9966ff","#ff9f40","#c9cbcf","#2ecc71"];
+    const bg = colors.slice(0, labels.length);
+
+    const ctx = document.getElementById("productChart").getContext("2d");
+    productChart = new Chart(ctx, {
       type: "bar",
       data: {
         labels,
-        datasets: [{ label: "Orders", data, backgroundColor: "#ffc107" }]
+        datasets: [{
+          label: "Orders per Product",
+          data,
+          backgroundColor: bg,
+          borderRadius: 6,
+          barThickness: 28
+        }]
       },
-      options: { scales: { y: { beginAtZero: true, ticks: {precision:0} } } }
+      options: {
+        plugins: {
+          tooltip: { enabled: true, mode: 'nearest' },
+          legend: { display: false },
+          title: { display: true, text: 'Top Products by Order Count', font: { size: 16 } }
+        },
+        scales: {
+          x: { title: { display: true, text: "Products" } },
+          y: { beginAtZero: true, title: { display: true, text: "Orders" }, ticks: { precision: 0 } }
+        }
+      }
     });
   }
 
@@ -536,17 +560,17 @@
 
     const showStatus = document.getElementById("analyticsStatus").checked;
     const showTime = document.getElementById("analyticsTime").checked;
-    const showCustomers = document.getElementById("analyticsCustomers").checked;
+    const showProducts = document.getElementById("analyticsProducts").checked;
 
-    document.getElementById("analyticsArea").style.display = (showStatus || showTime || showCustomers) ? "block" : "none";
+    document.getElementById("analyticsArea").style.display = (showStatus || showTime || showProducts) ? "block" : "none";
 
     document.getElementById("statusCard").style.display = showStatus ? "block" : "none";
     document.getElementById("timeCard").style.display = showTime ? "block" : "none";
-    document.getElementById("customerCard").style.display = showCustomers ? "block" : "none";
+    document.getElementById("productCard").style.display = showProducts ? "block" : "none";
 
     if (showStatus) renderStatusChart(orders);
     if (showTime) renderTimeChart(orders);
-    if (showCustomers) renderCustomerChart(orders);
+    if (showProducts) renderProductChart(orders);
   }
 
   // Called when user clicks "Generate Analytics"
