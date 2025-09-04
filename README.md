@@ -1,18 +1,22 @@
-# 📦 Trackify
+# <img src="static\images\logo.png" alt="Logo" width="27"> Trackify
 _lightweight Order Management System with JWT Authentication & CRUD operations_
-## 📖 Overview 
-Trackify is a simple yet powerful order management system built with **Flask**.
-It provides a clean dashboard UI for managing customer orders, powered by **JWT authentication** and a **RESTful API**.
 
-This project is designed as a demo SaaS-style application, showcasing full-stack development skills (Backend + Frontend + Database).
+<img src="static\images\order_dashboard.png" alt="dashboard" width="">
+
+## 📖 Overview 
+**Trackify** is a simple yet powerful order management platform.
+It deliveres a SaaS-style **Analytics Dashboard** with interactive charts, advanced filters, search, and sorting enabling 10x faster order tracking and improved decision visibility. 
+
+It provides a real time dashboard UI for managing customer orders, powered by **JWT authentication** and a **RESTful API**.
+
 ## ✨ Features
 - 🔐 JWT Authentication for secure API requests
 - 👤 User Login with session management
-- 📊 Dashboard UI to view orders in a neat table
+- 💻 Real-time analytics dashboard (orders by status, trends, top customers/products)
+- 📊 Optimized query performance  with search, sorting, and filters (status, date range, customer).
 - ➕ Create Orders with customer & product details
 - ✏️ Update Orders with status flow (Pending → Processing → Shipped → Delivered)
 - ❌ Delete Orders by ID
-- 📱 Responsive Bootstrap Frontend with modals for CRUD
 - 🗄️ Database persistence using SQLAlchemy
 
 ## 🛠 Tech Stack
@@ -53,22 +57,24 @@ App will be live at: http://127.0.0.1:5000/
 | DELETE | `/orders/<id>` | Delete an order |✅|
 | GET | `/orders/<id>/history` | Get order history |✅|
 
-###  Create Order
+###  Create Order (Example)
 ```json
 {
-  "customer": "Alice", //example
+  "customer": "Alice", 
   "product": "Laptop"
 }
 ```
 
-###  Update Order
+###  Update Order ( Pending > Processing > Shipped > Delivered)
 ```json
 {
-  "status": "Processing" // Pending > Processing > Shipped > Delivered
+  "status": "Processing" 
 }
 ```
 ## 📸 Screenshots
-Will be added soon
+<img src="static\images\home.png" alt="Home" width="350"> <img src="static\images\login.png" alt="Login" width="350"> 
+<img src="static\images\analytics.png" alt="Analytics" width="350"> 
+<img src="static\images\features.png" alt="About" width="350">
 
 ## 💻Future Enhancements
 - 📧 Email notifications on order updates
